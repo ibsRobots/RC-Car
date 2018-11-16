@@ -20,18 +20,6 @@ void setup() {
 }
 
 void loop() {
-//  if (softSerial.available() > 0) {
-//    portData = softSerial.readString();
-//    Serial.println("Port data: " + portData);
-//    angle = get_angle(portData);
-//    Serial.println("After map: " + angle);
-//    if (angle > -1) {
-////      Serial.println(angle);
-//      servo.write(angle);
-//    } 
-//  }
-//  delay(5);
-
   while (softSerial.available() > 0 && !endOfString) {
     char c = softSerial.read();    // Очередной символ в строке
     if (c != '\n') portData += c;     // Если это не символ конца строки, то добавляем его в строку
@@ -86,40 +74,4 @@ void loop() {
     }
   }
   delay(50);
-}
-
-int get_angle(String portData) {
-  int angle = -1;
-  String command = portData.substring(0, 4);
-  if (command == "dir ") {
-    portData = portData.substring(4, portData.length());
-    int index = find_text(" ", portData);
-    angle = atoi(portData.substring(0, index + 1).c_str());
-    Serial.println("Before map: " + angle);
-    angle = map(angle, -10, 10, 60, 120);
-  }
-  return angle;
-}
-
-int get_power(String portData) {
-  int power = -1;
-  String command = portData.substring(0, 4);
-  if (command == "dir ") {
-    portData = portData.substring(4, portData.length());
-    int index = find_text(" ", portData);
-    power = atoi(portData.substring(index + 1, portData.length()).c_str());
-    power = abs(power);
-    power = map(power, 0, 10, 0, 255);
-  }
-  return power;
-}
-
-int find_text(String needle, String haystack) {
-  int foundpos = -1;
-  for (int i = 0; i <= haystack.length() - needle.length(); i++) {
-    if (haystack.substring(i,needle.length()+i) == needle) {
-      foundpos = i;
-    }
-  }
-  return foundpos;
 }
