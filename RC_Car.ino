@@ -12,6 +12,10 @@ int servoV = 6; //напряжение на серву, порт должен б
 int motorD = 10; //полярность выхода на двиган, порт должен быть с возможностью аналога
 int motorV = 11; //напряжение на двиган, порт должен быть с возможностью аналога
 
+
+int powerMax = 255;
+int powerForward = 130;
+
 SoftwareSerial softSerial = SoftwareSerial(2, 3);
 
 String portData = "";     // Переменная приема команды
@@ -20,16 +24,16 @@ boolean endOfString = false;
 void setup() {
   Serial.begin(9600);
   softSerial.begin(9600);
-  
+
   pinMode(servoD, OUTPUT);
   pinMode(servoV, OUTPUT);
   pinMode(servoD, OUTPUT);
   pinMode(motorV, OUTPUT);
   digitalWrite(servoD, HIGH);
-  analogWrite(servoV, 85);   //5V from 7V, если servoD=HIGH, то 0-максимальное, а 255 - ноль, но НУЖНы живые акумы!!!!
-  digitalWrite(motorD, LOW);
-  analogWrite(motorV, 255);
-  
+  analogWrite(servoV, 75);   //5V from 7V, если servoD=HIGH, то 0-максимальное, а 255 - ноль, но НУЖНЫ живые акумы!!!!
+  digitalWrite(motorD, HIGH);
+  analogWrite(motorV, 130); // 125 - это 3.5 из 7.3 для LOW, 130 для HIGH
+
   servo.attach(servoPin);
   servo.write(90);
 }
@@ -63,7 +67,7 @@ void loop() {
     endOfString = false;
 
     if (key.equals("dir")) {  // Делать при получении значения с джойстика с идентификатором = 1
-      boolean boolJoy = false; // 
+      boolean boolJoy = false; //
       int i = 0;
       String valueX = "", valueY = "";
       while (value.length() > i){
@@ -80,13 +84,41 @@ void loop() {
       Serial.println("Angle: " + String(angle));
       Serial.println("");
       servo.write(angle);
+      SetPowerFromY(iValueY);
     }
     if(key.equals("L1on")){ //Делать при включении переключателя с идентификатором = 2
-      
+
     }
     if(key.equals("L1off")){    //Делать при выключении переключателя с идентификатором = 2
-      
+
     }
   }
   delay(50);
+}
+
+void SetPowerFromY(int valY) {
+  int power = 0;
+  int startPower = 0; // Стартовая мощь
+  // Вперед
+  if (valY >= 0) {
+    digitalWrite(motorD, HIGH);
+    startPower = powerMax - powerForward;
+    power = map(abs(valY), 0, 10, powerMax, powerMax - powerForward);
+  }
+  // Назад
+  else {
+    digitalWrite(motorD, LOW);
+    startPower = powerForward;
+    power = map(abs(valY), 0, 10, 0, powerForward);
+  }
+  if (analogRead(motorV) < 200 && power > 0) {
+    Serial.println(analogRead(motorV));
+    analogWrite(motorV, startPower);
+    delay(300);
+  }
+  analogWrite(motorV, power);
+}
+
+void CalculateAverageSpeed() {
+  // Рассчитать средную скорость по массиву мощностей
 }
