@@ -15,6 +15,7 @@ int motorV = 11; //напряжение на двиган, порт должен
 
 int powerMax = 255;
 int powerForward = 130;
+int oldY = 0;
 
 SoftwareSerial softSerial = SoftwareSerial(2, 3);
 
@@ -32,7 +33,7 @@ void setup() {
   digitalWrite(servoD, HIGH);
   analogWrite(servoV, 75);   //5V from 7V, если servoD=HIGH, то 0-максимальное, а 255 - ноль, но НУЖНЫ живые акумы!!!!
   digitalWrite(motorD, HIGH);
-  analogWrite(motorV, 130); // 125 - это 3.5 из 7.3 для LOW, 130 для HIGH
+  analogWrite(motorV, 255); // 125 - это 3.5 из 7.3 для LOW, 130 для HIGH
 
   servo.attach(servoPin);
   servo.write(90);
@@ -99,6 +100,9 @@ void loop() {
 void SetPowerFromY(int valY) {
   int power = 0;
   int startPower = 0; // Стартовая мощь
+  if (valY >= -1 && valY <= 1) {
+    valY = 0;
+  }
   // Вперед
   if (valY >= 0) {
     digitalWrite(motorD, HIGH);
@@ -111,14 +115,11 @@ void SetPowerFromY(int valY) {
     startPower = powerForward;
     power = map(abs(valY), 0, 10, 0, powerForward);
   }
-  if (analogRead(motorV) < 200 && power > 0) {
-    Serial.println(analogRead(motorV));
+  if (oldY = 0 && abs(valY) > 0) {
+    Serial.println("Start motor");
     analogWrite(motorV, startPower);
-    delay(300);
+    delay(400);
   }
   analogWrite(motorV, power);
-}
-
-void CalculateAverageSpeed() {
-  // Рассчитать средную скорость по массиву мощностей
+  oldY = abs(valY);
 }
