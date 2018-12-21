@@ -17,6 +17,8 @@ int powerMax = 255;
 int powerForward = 180; // 3.5 v from 5 v
 int oldY = 0;
 
+int lightPin = 12;
+
 SoftwareSerial softSerial = SoftwareSerial(2, 3);
 
 String portData = "";     // Переменная приема команды
@@ -34,6 +36,9 @@ void setup() {
   analogWrite(servoV, 0);   //5V from 7V, если servoD=HIGH, то 0-максимальное, а 255 - ноль, но НУЖНЫ живые акумы!!!!
   digitalWrite(motorD, HIGH);
   analogWrite(motorV, 255); // 125 - это 3.5 из 7.3 для LOW, 130 для HIGH
+
+  pinMode(lightPin, OUTPUT);
+  digitalWrite(lightPin, LOW);
 
   servo.attach(servoPin);
   servo.write(90);
@@ -81,17 +86,31 @@ void loop() {
       int iValueY = valueY.toInt(); // Координата Y
 //      Serial.println("valueX:" + valueX);
 //      Serial.println("iValueX:" + String(iValueX));
+
+      if (iValueX >= -2 && iValueX <= 2) {
+        iValueX = 0;
+      }
+
+      if (iValueX > 2) {
+        iValueX = 10;
+      }
+      if (iValueX < -2) {
+        iValueX = -10;
+      }
+      
       angle = map(-iValueX, -10, 10, 60, 120);
       Serial.println("Angle: " + String(angle));
       Serial.println("");
+      
       servo.write(angle);
+     
       SetPowerFromY(iValueY);
     }
     if(key.equals("L1on")){ //Делать при включении переключателя с идентификатором = 2
-
+      digitalWrite(lightPin, HIGH);
     }
     if(key.equals("L1off")){    //Делать при выключении переключателя с идентификатором = 2
-
+      digitalWrite(lightPin, LOW);
     }
   }
   delay(50);
@@ -117,6 +136,7 @@ void SetPowerFromY(int valY) {
   }
 
    if ((oldY * valY) <= 0 && valY != 0) {
+  //if (oldY == 0 && abs(valY) > 0) {
     Serial.println("Start motor");
     analogWrite(motorV, startPower);
     delay(200);
