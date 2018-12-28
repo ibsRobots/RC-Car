@@ -2,7 +2,7 @@
 #include <Servo.h>
 #include <stdlib.h>
 
-int servoPin = 7;
+int servoPin = 9;
 long servoPosition = 0;
 Servo servo;
 int angle;
@@ -14,10 +14,11 @@ int motorV = 11; //напряжение на двиган, порт должен
 
 
 int powerMax = 255;
-int powerForward = 180; // 3.5 v from 5 v
+int powerForward = 115; // 3.5 v from 5 v
 int oldY = 0;
 
 int lightPin = 12;
+int stopPin = A0;
 
 SoftwareSerial softSerial = SoftwareSerial(2, 3);
 
@@ -33,12 +34,15 @@ void setup() {
   pinMode(servoD, OUTPUT);
   pinMode(motorV, OUTPUT);
   digitalWrite(servoD, HIGH);
-  analogWrite(servoV, 0);   //5V from 7V, если servoD=HIGH, то 0-максимальное, а 255 - ноль, но НУЖНЫ живые акумы!!!!
+  analogWrite(servoV, 50);   //5V from 7V, если servoD=HIGH, то 0-максимальное, а 255 - ноль, но НУЖНЫ живые акумы!!!!
   digitalWrite(motorD, HIGH);
   analogWrite(motorV, 255); // 125 - это 3.5 из 7.3 для LOW, 130 для HIGH
 
   pinMode(lightPin, OUTPUT);
   digitalWrite(lightPin, LOW);
+
+  pinMode(stopPin, OUTPUT);
+  analogWrite(stopPin, 0);
 
   servo.attach(servoPin);
   servo.write(90);
@@ -90,17 +94,10 @@ void loop() {
       if (iValueX >= -2 && iValueX <= 2) {
         iValueX = 0;
       }
-
-      if (iValueX > 2) {
-        iValueX = 10;
-      }
-      if (iValueX < -2) {
-        iValueX = -10;
-      }
       
       angle = map(-iValueX, -10, 10, 60, 120);
-      Serial.println("Angle: " + String(angle));
-      Serial.println("");
+      //Serial.println("Angle: " + String(angle));
+      //Serial.println("");
       
       servo.write(angle);
      
@@ -108,9 +105,11 @@ void loop() {
     }
     if(key.equals("L1on")){ //Делать при включении переключателя с идентификатором = 2
       digitalWrite(lightPin, HIGH);
+      analogWrite(stopPin, 255);
     }
     if(key.equals("L1off")){    //Делать при выключении переключателя с идентификатором = 2
       digitalWrite(lightPin, LOW);
+      analogWrite(stopPin, 0);
     }
   }
   delay(50);
@@ -136,11 +135,13 @@ void SetPowerFromY(int valY) {
   }
 
    if ((oldY * valY) <= 0 && valY != 0) {
-  //if (oldY == 0 && abs(valY) > 0) {
-    Serial.println("Start motor");
+    //Serial.println("Start motor");
     analogWrite(motorV, startPower);
     delay(200);
   }
+  
+  Serial.println("valY" + String(valY));
+  Serial.println("power" + String(power));
   analogWrite(motorV, power);
   oldY = valY;
 }
